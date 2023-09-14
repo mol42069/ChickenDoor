@@ -163,13 +163,14 @@ void setup() {
   myStepper.setSpeed(5);
   
   // initialize the LED pin as an output:
+  /*
   pinMode(LED3Pin, OUTPUT);
   pinMode(LED4Pin, OUTPUT);
   pinMode(LED5Pin, OUTPUT);
   pinMode(LED6Pin, OUTPUT);
   pinMode(LED7Pin, OUTPUT);
 
-  /*
+  
   pinMode(sevenA, OUTPUT);
   pinMode(sevenB, OUTPUT);
   pinMode(sevenC, OUTPUT);
@@ -179,8 +180,8 @@ void setup() {
   pinMode(sevenG, OUTPUT);
   */
   
-  pinMode(6, OUTPUT);
-  digitalWrite(6, HIGH);
+  //pinMode(6, OUTPUT);
+  //digitalWrite(6, HIGH);
 
   myservo.attach(servoPin);
   
@@ -202,13 +203,17 @@ void loop() {
     //myservo.write(-90);
     night();
   }
-  
+
   if (ON){
+
     
+    Serial.print("DayNight: ");
+    Serial.print(analogRead(DayNight));
+
     int photo1 = analogRead(photo1Pin);
     int photo2 = analogRead(photo2Pin);
     
-    Serial.print("photo1: ");
+    Serial.print(" | photo1: ");
     Serial.print(photo1);
     Serial.print(" | photo2: ");
     Serial.print(photo2);
@@ -217,7 +222,7 @@ void loop() {
     Serial.print(count);
     
     counter();
-    drawOnLed();
+    //drawOnLed();
 
     if (photo1 >= startingLvL1){
       photo1Off = true;
@@ -232,8 +237,7 @@ void loop() {
     }else{
       photo2Off = false;    
         
-    }
-    //delay(500);     
+    }  
      
   }else{
     OFFcounter++;
@@ -250,22 +254,26 @@ void loop() {
 }
 
 void night(){
-  bool closed = false;
-  myStepper.step(stepsPerRevolution);
+
+  //myStepper.step(stepsPerRevolution);
   /*myStepper.step(stepsPerRevolution);
   myStepper.step(stepsPerRevolution);
   myStepper.step(stepsPerRevolution);
   myStepper.step(stepsPerRevolution);
   */
-  myservo.write(-90);
+  myservo.write(90);
+  delay(1000);
   
   while(analogRead(DayNight) > dayNightSwitch){
     
     Serial.println(analogRead(A5));
-    delay(10000);
+    delay(1000);
   }
-  myservo.write(90);
-  myStepper.step(-1 * stepsPerRevolution);
+  Serial.print("Open servo");
+
+  myservo.write(0);
+  
+  //myStepper.step(-1 * stepsPerRevolution);
   /*myStepper.step(stepsPerRevolution);
   myStepper.step(stepsPerRevolution);
   myStepper.step(stepsPerRevolution);
@@ -277,14 +285,14 @@ void counter(){
   Serial.print(" | IN/OUT: ");
   
   if(photo1Off && photo2Off){
-    if(InOut == 1){
+    if(InOut == 2){
       Serial.println("IN");  
       count++;
       if(count > 4){
         count = 4;
         }
       
-    }else if(InOut == 2){
+    }else if(InOut == 1){
       Serial.println("OUT");
       count--;    
       if(count < 0){
@@ -297,14 +305,26 @@ void counter(){
     InOut = 0;
     
   }else if(photo1Off && !photo2Off){
-    Serial.println("RUN");
-    InOut = 1;
-    
+    Serial.print("RUN");
+    if(InOut == 3 || InOut == 1){
+      Serial.println(" OUT");
+      InOut = 1;
+    }
+    else{
+      Serial.println("");
+    }
   }else if(!photo1Off && photo2Off){
-    Serial.println("RUN");
-    InOut = 2;
+    Serial.print("RUN");
+    if(InOut == 3 || InOut == 2){
+      Serial.println(" IN");
+      InOut = 2;
+    }
+    else{
+      Serial.println("");
+    }
     
-  }else{
+  }else if(!photo1Off && !photo2Off){
+    InOut = 3;
     Serial.println("RUN");  
   }
 }
