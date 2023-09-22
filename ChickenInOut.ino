@@ -269,7 +269,6 @@ void night(){
     Serial.println(analogRead(A5));
     delay(1000);
   }
-  Serial.print("Open servo");
 
   myservo.write(0);
   
