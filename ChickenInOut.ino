@@ -1,34 +1,27 @@
 #include <Servo.h>
-#include <Stepper.h>
+
+
+// TODO: we need to remove all Serial stuff so we dont send stuff into nowhere while its not needed
+
+/*
+HERE WE DEFINE ON WHAT PINS WHAT IS...
+*/
 
 const int photo1Pin = A0;   // Black
 const int photo2Pin = A1;   // Red
 const int ButtonPin = 2;    // Blue
 
 
-/*
-const int sevenA = 7;
-const int sevenB = 8;
-const int sevenC = 9;
-const int sevenD = 10;
-const int sevenE = 11;
-const int sevenF = 12;
-const int sevenG = 13;
-*/
+// Motor-RELAYS:
+const int mRelay1 = 8;         // Positive
+const int mRelay2 = 9;         // Negative 1     for: opening    motor +
+const int mRelay3 = 10;        // Negative 2     for: closing    motor -
 
-const int LED3Pin = 10;   // LED for number 0
-const int LED4Pin = 11;   // LED for number 1
-const int LED5Pin = 12;   // LED for number 2
-const int LED6Pin = 13;   // LED for number 3  
-const int LED7Pin = 9;   // LED for number 4  
+// Laser-REALS:                                                   (so wee dont waste too much power)
+const int lRelay1 = 7;         // Positive
+const int lRelay2 = 8;         // Negative
 
-const int stepperIn1 = 8;
-const int stepperIn2 = 7;
-const int stepperIn3 = 5;
-const int stepperIn4 = 4;
-
-const int stepsPerRevolution = 2048;
-
+const int openCloseDelay = 1000; //TODO: NEEDS TO BE CONFIURED SO IT FULLY OPENS/CLOSES DOOR
 
 
 const int DayNight = A5;
@@ -36,6 +29,7 @@ const int DayNight = A5;
 volatile int startingLvL1 = 300;  // Here we define when we don't see the laser
 volatile int startingLvL2 = 300;
 volatile bool ON = false;
+
 const int dayNightSwitch = 500;
 int OFFcounter = 0;
 int count = -1;
@@ -52,141 +46,23 @@ int InOut = 0;    // 0 -> nothing; 1 -> in; 2 -> out;
 
 int timeDelay = 0;
 
-// DRAW NUMBERS :
-/*
-void draw7Seg(){
-  if (count == 0){
-    // 0 = A B C E F G
-    digitalWrite(sevenA, HIGH);
-    digitalWrite(sevenB, HIGH);
-    digitalWrite(sevenC, HIGH);
-    digitalWrite(sevenD, LOW);
-    digitalWrite(sevenE, HIGH);
-    digitalWrite(sevenF, HIGH);
-    digitalWrite(sevenG, HIGH);
-    
-  }else if(count == 1){
-    // 1 = F C
-    digitalWrite(sevenA, LOW);
-    digitalWrite(sevenB, LOW);
-    digitalWrite(sevenC, HIGH);
-    digitalWrite(sevenD, LOW);
-    digitalWrite(sevenE, LOW);
-    digitalWrite(sevenF, HIGH);
-    digitalWrite(sevenG, LOW);
-    
-  }else if(count == 2){
-    // 2 = A B D F G
-    digitalWrite(sevenA, HIGH);
-    digitalWrite(sevenB, HIGH);
-    digitalWrite(sevenC, LOW);
-    digitalWrite(sevenD, HIGH);
-    digitalWrite(sevenE, LOW);
-    digitalWrite(sevenF, HIGH);
-    digitalWrite(sevenG, HIGH);
-    
-  }else if(count == 3){
-    // 3 = A C D F G
-    digitalWrite(sevenA, HIGH);
-    digitalWrite(sevenB, LOW);
-    digitalWrite(sevenC, HIGH);
-    digitalWrite(sevenD, HIGH);
-    digitalWrite(sevenE, LOW);
-    digitalWrite(sevenF, HIGH);
-    digitalWrite(sevenG, HIGH);
-    
-  }else if(count == 4){
-    // 4 = C D E F
-    digitalWrite(sevenA, LOW);
-    digitalWrite(sevenB, LOW);
-    digitalWrite(sevenC, HIGH);
-    digitalWrite(sevenD, HIGH);
-    digitalWrite(sevenE, HIGH);
-    digitalWrite(sevenF, HIGH);
-    digitalWrite(sevenG, LOW);
-  }else if(count == -1){
-    // - = D
-    digitalWrite(sevenA, LOW);
-    digitalWrite(sevenB, LOW);
-    digitalWrite(sevenC, LOW);
-    digitalWrite(sevenD, HIGH);
-    digitalWrite(sevenE, LOW);
-    digitalWrite(sevenF, LOW);
-    digitalWrite(sevenG, LOW);
-  }
-}
-*/
-
-void drawOnLed(){
-
-  if(count == 0){
-    digitalWrite(LED3Pin, HIGH);
-    digitalWrite(LED4Pin, LOW);
-    digitalWrite(LED5Pin, LOW);
-    digitalWrite(LED6Pin, LOW);
-    digitalWrite(LED7Pin, LOW);
-  }else if(count == 1){
-    digitalWrite(LED3Pin, LOW);
-    digitalWrite(LED4Pin, HIGH);
-    digitalWrite(LED5Pin, LOW);
-    digitalWrite(LED6Pin, LOW);  
-    digitalWrite(LED7Pin, LOW);
-  }else if(count == 2){
-    digitalWrite(LED3Pin, LOW);
-    digitalWrite(LED4Pin, LOW);
-    digitalWrite(LED5Pin, HIGH);
-    digitalWrite(LED6Pin, LOW);  
-    digitalWrite(LED7Pin, LOW);
-  }else if(count == 3){
-    digitalWrite(LED3Pin, LOW);
-    digitalWrite(LED4Pin, LOW);
-    digitalWrite(LED5Pin, LOW);
-    digitalWrite(LED6Pin, HIGH);  
-    digitalWrite(LED7Pin, LOW);
-  }else if(count == 4){
-    digitalWrite(LED3Pin, LOW);
-    digitalWrite(LED4Pin, LOW);
-    digitalWrite(LED5Pin, LOW);
-    digitalWrite(LED6Pin, LOW);  
-    digitalWrite(LED7Pin, HIGH);
-  }else{
-    digitalWrite(LED3Pin, HIGH);
-    digitalWrite(LED4Pin, LOW);
-    digitalWrite(LED5Pin, LOW);
-    digitalWrite(LED6Pin, LOW);
-    digitalWrite(LED7Pin, LOW);
-  }
-}
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  myStepper.setSpeed(5);
-  
-  // initialize the LED pin as an output:
-  /*
-  pinMode(LED3Pin, OUTPUT);
-  pinMode(LED4Pin, OUTPUT);
-  pinMode(LED5Pin, OUTPUT);
-  pinMode(LED6Pin, OUTPUT);
-  pinMode(LED7Pin, OUTPUT);
 
-  
-  pinMode(sevenA, OUTPUT);
-  pinMode(sevenB, OUTPUT);
-  pinMode(sevenC, OUTPUT);
-  pinMode(sevenD, OUTPUT);
-  pinMode(sevenE, OUTPUT);
-  pinMode(sevenF, OUTPUT);
-  pinMode(sevenG, OUTPUT);
-  */
-  
-  //pinMode(6, OUTPUT);
-  //digitalWrite(6, HIGH);
+  // initialize Relay-Pins:
+  pinMode(mRelay1, OUTPUT);
+  pinMode(mRelay2, OUTPUT);
+  pinMode(mRelay3, OUTPUT);
+  pinMode(lRelay1, OUTPUT);
+  pinMode(lRelay2, OUTPUT);
 
-  myservo.attach(servoPin);
+
+  pinMode(3, OUTPUT);
   
   // initialize the pushbutton pin as an input:
   pinMode(ButtonPin, INPUT);
+
   // Attach an interrupt to the ISR vector
   
   Serial.begin(9600);
@@ -200,18 +76,22 @@ void loop() {
 
 
   if(analogRead(DayNight) > dayNightSwitch && count == 4){
-    //myservo.write(-90);
     night();
   }
 
   if (ON){
-
     
     Serial.print("DayNight: ");
     Serial.print(analogRead(DayNight));
 
+    digitalWrite(lRelay1, HIGH);              // we turn the Lasers On and off so we can preserve Energy.
+    digitalWrite(lRelay2, HIGH);
+
     int photo1 = analogRead(photo1Pin);
     int photo2 = analogRead(photo2Pin);
+
+    digitalWrite(lRelay1, LOW);
+    digitalWrite(lRelay2, LOW);
     
     Serial.print(" | photo1: ");
     Serial.print(photo1);
@@ -222,7 +102,6 @@ void loop() {
     Serial.print(count);
     
     counter();
-    //drawOnLed();
 
     if (photo1 >= startingLvL1){
       photo1Off = true;
@@ -255,29 +134,57 @@ void loop() {
 
 void night(){
 
-  //myStepper.step(stepsPerRevolution);
-  /*myStepper.step(stepsPerRevolution);
-  myStepper.step(stepsPerRevolution);
-  myStepper.step(stepsPerRevolution);
-  myStepper.step(stepsPerRevolution);
+  /*
+    here we have the 'night-loop' here we dont need to count the chickens so we only need to check the outside photo-resistor
+    from time to time. Ande when its bright enough we open the servo and than open the motor.
   */
-  myservo.write(90);
-  delay(1000);
   
+  open();
+
   while(analogRead(DayNight) > dayNightSwitch){
     
     Serial.println(analogRead(A5));
     delay(1000);
   }
+  
+  close();
+
+  // TODO: here we need to open and close the second Relay1 which is reversed from the other 
+}
+
+void open(){
+
+  digitalWrite(Relay1, HIGH);
+  digitalWrite(Relay2, HIGH);
+  
+  delay(openCloseDelay);
+  
+  digitalWrite(Relay1, LOW);
+  digitalWrite(Relay2, LOW);
+
+  myservo.write(90);
+  delay(10);  
+
+  return;
+}
+
+void close(){
+
+  digitalWrite(Relay1, LOW);
+  digitalWrite(Relay3, HIGH);
+  
+  delay(openCloseDelay);
+  
+  digitalWrite(Relay1, HIGH);
+  digitalWrite(Relay3, LOW);
 
   myservo.write(0);
-  
-  //myStepper.step(-1 * stepsPerRevolution);
-  /*myStepper.step(stepsPerRevolution);
-  myStepper.step(stepsPerRevolution);
-  myStepper.step(stepsPerRevolution);
-  */
+  delay(10);  
+
+  return;
+
 }
+
 
 void counter(){
   
